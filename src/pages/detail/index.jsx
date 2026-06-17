@@ -1,13 +1,64 @@
-import { useRouter } from '@tarojs/taro'
-import { View, Text, Image } from '@tarojs/components'
+import { useState, useEffect } from 'react'
+import Taro, { useRouter } from '@tarojs/taro'
+import { View, Text, Image, Button } from '@tarojs/components'
 import { getUserById, USER_TYPE } from '../../mockdata'
 import './index.scss'
+
+const SKIP_COOLDOWN_SEC = 15
 
 export default function Detail() {
   const router = useRouter()
   const { id = '', type = '' } = router.params
   const user = getUserById(type, id)
   const typeLabel = type === USER_TYPE.GUEST ? '嘉宾' : '官委'
+  const [modalVisible, setModalVisible] = useState(false)
+  const [skipCooldown, setSkipCooldown] = useState(0)
+
+  useEffect(() => {
+    if (skipCooldown <= 0) return undefined
+    const timer = setTimeout(() => {
+      setSkipCooldown((prev) => prev - 1)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [skipCooldown])
+
+  const handleCall = () => {
+    setModalVisible(true)
+    setSkipCooldown((prev) => (prev > 0 ? prev : SKIP_COOLDOWN_SEC))
+  }
+
+  const handleCloseModal = () => {
+    setModalVisible(false)
+  }
+
+  const handleSkip = () => {
+    if (skipCooldown > 0) return
+    Taro.showModal({
+      title: '确认过号',
+      content: `确定将 ${user.currentNo} 设为过号吗？`,
+      confirmText: '确认',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          Taro.showToast({ title: '已过号', icon: 'none' })
+          setSkipCooldown(SKIP_COOLDOWN_SEC)
+        }
+      },
+    })
+  }
+  const handleConfirm = () => {
+    Taro.showModal({
+      title: '确认叫号',
+      content: `确定叫号 ${user.currentNo} 吗？`,
+      confirmText: '确认',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          Taro.showToast({ title: '叫号成功', icon: 'success' })
+        }
+      },
+    })
+  }
 
   if (!user) {
     return (
@@ -53,6 +104,33 @@ export default function Detail() {
           <Text className="info-value">{user.userName}</Text>
         </View>
       </View>
+
+      <Button className="call-btn" onClick={handleCall}>
+        叫号
+      </Button>
+
+      {modalVisible && (
+        <View className="modal-mask" onClick={handleCloseModal}>
+          <View className="modal-content" catchClick={() => {}}>
+            <Text className="modal-title">确认叫下一位吗？</Text>
+            <Text className="modal-no">{user.currentNo}</Text>
+            <Text className="modal-desc">
+              请 {user.userName} 准备前往{typeLabel}互动环节
+            </Text>
+            <View className="modal-actions">
+              <Button
+                className={`modal-btn modal-btn-secondary ${skipCooldown > 0 ? 'modal-btn-disabled' : ''}`}
+                disabled={skipCooldown > 0}
+                onClick={handleSkip}
+              >
+                {skipCooldown > 0 ? `过号(${skipCooldown}s)` : '过号'}
+              </Button>
+              <Button className="modal-btn modal-btn-primary" onClick={handleConfirm}>
+                确认
+              </Button>
+            </View>          </View>
+        </View>
+      )}
     </View>
   )
 }
