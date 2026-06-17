@@ -45,7 +45,7 @@ export default function Index() {
   return (
     <View className="page">
       <View className="header">
-        <Text className="title">烬光灵契</Text>
+        <Text className="title">烬光灵契·深空光夜魔法校园</Text>
         <Text className="subtitle">选择嘉宾或官委</Text>
       </View>
 
