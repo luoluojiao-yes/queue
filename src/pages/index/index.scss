@@ -1,0 +1,105 @@
+.page {
+  padding: 32px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  display: block;
+  font-size: 48px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.subtitle {
+  display: block;
+  font-size: 26px;
+  color: #999;
+}
+
+.section-box {
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px 24px;
+  margin-bottom: 32px;
+  border: 2px solid #f0f0f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.section-title {
+  display: block;
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 28px;
+  padding-left: 8px;
+  border-left: 6px solid #333;
+}
+
+.user-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 16px;
+}
+
+.user-item {
+  width: calc((100% - 48px) / 4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.user-item:active {
+  opacity: 0.7;
+}
+
+.avatar-img,
+.avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  background: #f5f5f5;
+}
+
+.avatar-placeholder {
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #eee;
+}
+
+.avatar-text {
+  font-size: 44px;
+  color: #666;
+  font-weight: 500;
+}
+
+.user-name {
+  font-size: 24px;
+  color: #333;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  display: block;
+  color: #999;
+  text-align: center;
+  padding: 40px 0;
+  font-size: 28px;
+}

@@ -1,0 +1,20 @@
+{
+  "miniprogramRoot": "dist/",
+  "projectname": "线下活动叫号系统",
+  "description": "线下活动叫号系统",
+  "appid": "wx6ecd2fc8d5c179f1",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": false,
+    "compileHotReLoad": true,
+    "postcss": true,
+    "minified": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  }
+}
