@@ -1,6 +1,6 @@
 import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { guests, officials, USER_TYPE } from '../../mockdata'
+import { guests, officials, freeTravels, USER_TYPE } from '../../mockdata'
 import './index.scss'
 
 function UserGrid({ list, type }) {
@@ -41,16 +41,31 @@ function UserSection({ title, list, type }) {
   )
 }
 
+function FreeTravelSection({ categories, type }) {
+  return (
+    <View className="section-box">
+      <Text className="section-title">自由行</Text>
+      {categories.map((item) => (
+        <View className="subcategory-box" key={item.category}>
+          <Text className="subcategory-title">{item.category}</Text>
+          <UserGrid list={item.list} type={type} />
+        </View>
+      ))}
+    </View>
+  )
+}
+
 export default function Index() {
   return (
     <View className="page">
       <View className="header">
         <Text className="title">烬光灵契·深空光夜魔法校园</Text>
-        <Text className="subtitle">选择嘉宾或官委</Text>
+        <Text className="subtitle">选择嘉宾、官委或自由行</Text>
       </View>
 
       <UserSection title="嘉宾" list={guests} type={USER_TYPE.GUEST} />
       <UserSection title="官委" list={officials} type={USER_TYPE.OFFICIAL} />
+      <FreeTravelSection categories={freeTravels} type={USER_TYPE.FREE} />
     </View>
   )
 }

@@ -41,6 +41,23 @@
   border-left: 6px solid #333;
 }
 
+.subcategory-box {
+  margin-bottom: 32px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.subcategory-title {
+  display: block;
+  font-size: 28px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 20px;
+  padding-left: 4px;
+}
+
 .user-grid {
   display: flex;
   flex-wrap: wrap;

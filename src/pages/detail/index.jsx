@@ -10,7 +10,8 @@ export default function Detail() {
   const router = useRouter()
   const { id = '', type = '' } = router.params
   const user = getUserById(type, id)
-  const typeLabel = type === USER_TYPE.GUEST ? '嘉宾' : '官委'
+  const typeLabel =
+    type === USER_TYPE.GUEST ? '嘉宾' : type === USER_TYPE.OFFICIAL ? '官委' : '自由行'
   const [modalVisible, setModalVisible] = useState(false)
   const [skipCooldown, setSkipCooldown] = useState(0)
 
