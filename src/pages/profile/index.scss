@@ -104,6 +104,59 @@
   font-weight: 400;
 }
 
+.guest-section {
+  background: #fff;
+  border-radius: 20px;
+  border: 2px solid #f0f0f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 32px;
+  margin-top: 4px;
+}
+
+.guest-section-title {
+  display: block;
+  font-size: 28px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.guest-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
+  border-bottom: 2px solid #f5f5f5;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  &:first-of-type {
+    padding-top: 0;
+  }
+}
+
+.guest-name {
+  font-size: 30px;
+  font-weight: 600;
+  color: #333;
+}
+
+.guest-queue {
+  font-size: 28px;
+  color: #666;
+}
+
+.guest-empty {
+  padding: 8px 0;
+}
+
+.guest-empty-text {
+  font-size: 30px;
+  color: #ccc;
+}
+
 .login-btn {
   background: #333333;
   color: #fff;

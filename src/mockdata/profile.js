@@ -4,7 +4,7 @@ export const emptyUserInfo = {
   username: EMPTY,
   ticketNo: EMPTY,
   orderNo: EMPTY,
-  guestName: EMPTY,
+  guestList: [],
 }
 
 export const mockLoggedInUser = {

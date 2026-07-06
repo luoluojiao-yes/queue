@@ -1,26 +1,23 @@
 import { useState } from 'react'
 import { View, Text, Button } from '@tarojs/components'
-import Taro from '@tarojs/taro'
-import { EMPTY, emptyUserInfo, mockLoggedInUser } from '../../mockdata'
+import Taro, { useDidShow } from '@tarojs/taro'
+import { EMPTY, emptyUserInfo } from '../../mockdata'
+import { useAuthGuard } from '../../hooks/useAuthGuard'
+import { clearAuth, getUserInfo } from '../../utils/auth'
+import { normalizeUserProfile } from '../../utils/userProfile'
 import './index.scss'
 
 export default function Profile() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  useAuthGuard()
   const [userInfo, setUserInfo] = useState(emptyUserInfo)
 
-  const handleLogin = () => {
-    if (isLoggedIn) {
-      Taro.showToast({ title: '已登录', icon: 'none' })
-      return
-    }
-    setIsLoggedIn(true)
-    setUserInfo(mockLoggedInUser)
-    Taro.showToast({ title: '登录成功', icon: 'success' })
-  }
+  useDidShow(() => {
+    setUserInfo(normalizeUserProfile(getUserInfo()))
+  })
 
   const handleCopy = (label, value) => {
     if (value === EMPTY) {
-      Taro.showToast({ title: '请先登录', icon: 'none' })
+      Taro.showToast({ title: '暂无数据', icon: 'none' })
       return
     }
     Taro.setClipboardData({
@@ -31,20 +28,34 @@ export default function Profile() {
     })
   }
 
+  const handleLogout = () => {
+    Taro.showModal({
+      title: '确认退出',
+      content: '确定要退出登录吗？',
+      confirmText: '退出',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          clearAuth()
+          Taro.reLaunch({ url: '/pages/login/index' })
+        }
+      },
+    })
+  }
+
   const infoList = [
-    { key: 'username', label: '个人用户名', value: userInfo.username },
+    { key: 'username', label: 'cn', value: userInfo.username },
     { key: 'ticketNo', label: '票号', value: userInfo.ticketNo },
     { key: 'orderNo', label: '订单号', value: userInfo.orderNo },
-    { key: 'guestName', label: '所排嘉宾', value: userInfo.guestName },
   ]
 
   return (
     <View className="profile-page">
       <View className="user-card">
-        <View className="avatar">{isLoggedIn ? '🙂' : '👤'}</View>
+        <View className="avatar">🙂</View>
         <View className="user-info">
-          <Text className="nickname">{isLoggedIn ? userInfo.username : '未登录'}</Text>
-          <Text className="desc">线下活动叫号系统</Text>
+          <Text className="nickname">{userInfo.username}</Text>
+          <Text className="desc"></Text>
         </View>
       </View>
 
@@ -62,10 +73,26 @@ export default function Profile() {
             </Text>
           </Button>
         ))}
+
+        <View className="guest-section">
+          <Text className="guest-section-title">所排嘉宾</Text>
+          {userInfo.guestList.length === 0 ? (
+            <View className="guest-empty">
+              <Text className="guest-empty-text">{EMPTY}</Text>
+            </View>
+          ) : (
+            userInfo.guestList.map((guest) => (
+              <View className="guest-item" key={guest.id}>
+                <Text className="guest-name">{guest.coserName}</Text>
+                <Text className="guest-queue">排号：{guest.queueNo}</Text>
+              </View>
+            ))
+          )}
+        </View>
       </View>
 
-      <Button className="login-btn" onClick={handleLogin}>
-        {isLoggedIn ? '已登录' : '登录'}
+      <Button className="login-btn" onClick={handleLogout}>
+        退出登录
       </Button>
     </View>
   )

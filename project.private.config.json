@@ -4,7 +4,7 @@
   "appid": "wx6ecd2fc8d5c179f1",
   "libVersion": "3.16.1",
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "coverView": false,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": false,

@@ -1,8 +1,8 @@
 import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { guests, officials, freeTravels, USER_TYPE } from '../../mockdata'
+import { useAuthGuard } from '../../hooks/useAuthGuard'
 import './index.scss'
-
 function UserGrid({ list, type }) {
   const handleClick = (user) => {
     Taro.navigateTo({
@@ -56,8 +56,9 @@ function FreeTravelSection({ categories, type }) {
 }
 
 export default function Index() {
-  return (
-    <View className="page">
+  useAuthGuard()
+
+  return (    <View className="page">
       <View className="header">
         <Text className="title">烬光灵契·深空光夜魔法校园</Text>
         <Text className="subtitle">选择嘉宾、官委或自由行</Text>

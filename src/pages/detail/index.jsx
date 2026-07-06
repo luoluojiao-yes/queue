@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import Taro, { useRouter } from '@tarojs/taro'
 import { View, Text, Image, Button } from '@tarojs/components'
 import { getUserById, USER_TYPE } from '../../mockdata'
+import { useAuthGuard } from '../../hooks/useAuthGuard'
 import './index.scss'
 
 const SKIP_COOLDOWN_SEC = 15
 
 export default function Detail() {
+  useAuthGuard()
   const router = useRouter()
   const { id = '', type = '' } = router.params
   const user = getUserById(type, id)
@@ -129,7 +131,8 @@ export default function Detail() {
               <Button className="modal-btn modal-btn-primary" onClick={handleConfirm}>
                 确认
               </Button>
-            </View>          </View>
+            </View>
+          </View>
         </View>
       )}
     </View>
