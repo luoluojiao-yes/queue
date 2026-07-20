@@ -17,6 +17,13 @@ export function getUserById(userId) {
   })
 }
 
+export function getUserByTicketCode(ticketCode) {
+  return request({
+    url: `/user/by-ticket-code?ticketCode=${encodeURIComponent(ticketCode)}`,
+    method: 'POST',
+  })
+}
+
 export async function fetchUserInfo(userId) {
   const userInfo = await getUserById(userId)
   setUserInfo(userInfo)

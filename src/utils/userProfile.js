@@ -10,6 +10,9 @@ export function normalizeGuestList(interactionResps = []) {
     id: item.id,
     coserName: item.coserName || item.coserCode || EMPTY,
     queueNo: formatQueueNo(item.coserCode, item.code),
+    status: item.status,
+    isPresented: item.isPresented,
+    raw: item,
   }))
 }
 
