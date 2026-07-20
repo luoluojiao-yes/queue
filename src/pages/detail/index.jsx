@@ -1,19 +1,33 @@
 import { useState, useEffect } from 'react'
 import Taro, { useRouter } from '@tarojs/taro'
 import { View, Text, Image, Button } from '@tarojs/components'
-import { getUserById, USER_TYPE } from '../../mockdata'
+import { USER_TYPE } from '../../mockdata'
+import { getDetailUser, getUserById } from '../../utils/guestData'
 import { useAuthGuard } from '../../hooks/useAuthGuard'
 import './index.scss'
 
 const SKIP_COOLDOWN_SEC = 15
 
+function resolveUser(id, type) {
+  const passed = getDetailUser()
+  if (passed && String(passed.id) === String(id) && (!type || passed.type === type)) {
+    return passed
+  }
+  return getUserById(type, id)
+}
+
 export default function Detail() {
   useAuthGuard()
   const router = useRouter()
   const { id = '', type = '' } = router.params
-  const user = getUserById(type, id)
+  const user = resolveUser(id, type)
+  const userType = user?.type || type
   const typeLabel =
-    type === USER_TYPE.GUEST ? '嘉宾' : type === USER_TYPE.OFFICIAL ? '官委' : '自由行'
+    userType === USER_TYPE.GUEST
+      ? '嘉宾'
+      : userType === USER_TYPE.OFFICIAL
+        ? '官委'
+        : '自由行'
   const [modalVisible, setModalVisible] = useState(false)
   const [skipCooldown, setSkipCooldown] = useState(0)
 

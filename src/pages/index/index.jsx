@@ -1,12 +1,23 @@
+import { useState } from 'react'
 import { View, Text, Image } from '@tarojs/components'
-import Taro from '@tarojs/taro'
-import { guests, officials, freeTravels, USER_TYPE } from '../../mockdata'
+import Taro, { useDidShow } from '@tarojs/taro'
+import { USER_TYPE } from '../../mockdata'
+import { queryGuestAll } from '../../services/guest'
+import { normalizeGuestAll, setGuestAllCache, setDetailUser } from '../../utils/guestData'
 import { useAuthGuard } from '../../hooks/useAuthGuard'
 import './index.scss'
+
+const emptyGuestData = {
+  guests: [],
+  officials: [],
+  freeTravels: [],
+}
+
 function UserGrid({ list, type }) {
   const handleClick = (user) => {
+    setDetailUser(user, type)
     Taro.navigateTo({
-      url: `/pages/detail/index?id=${user.id}&type=${type}`,
+      url: `/pages/detail/index?id=${encodeURIComponent(user.id)}&type=${type}`,
     })
   }
 
@@ -41,32 +52,40 @@ function UserSection({ title, list, type }) {
   )
 }
 
-function FreeTravelSection({ categories, type }) {
-  return (
-    <View className="section-box">
-      <Text className="section-title">自由行</Text>
-      {categories.map((item) => (
-        <View className="subcategory-box" key={item.category}>
-          <Text className="subcategory-title">{item.category}</Text>
-          <UserGrid list={item.list} type={type} />
-        </View>
-      ))}
-    </View>
-  )
-}
-
 export default function Index() {
   useAuthGuard()
+  const [guestData, setGuestData] = useState(emptyGuestData)
+  const [loading, setLoading] = useState(false)
 
-  return (    <View className="page">
+  useDidShow(async () => {
+    setLoading(true)
+    try {
+      const data = await queryGuestAll()
+      const normalized = normalizeGuestAll(data)
+      setGuestAllCache(normalized)
+      setGuestData(normalized)
+    } catch (err) {
+      Taro.showToast({
+        title: err.message || '加载嘉宾数据失败',
+        icon: 'none',
+      })
+    } finally {
+      setLoading(false)
+    }
+  })
+
+  return (
+    <View className="page">
       <View className="header">
         <Text className="title">烬光灵契·深空光夜魔法校园</Text>
         <Text className="subtitle">选择嘉宾、官委或自由行</Text>
       </View>
 
-      <UserSection title="嘉宾" list={guests} type={USER_TYPE.GUEST} />
-      <UserSection title="官委" list={officials} type={USER_TYPE.OFFICIAL} />
-      <FreeTravelSection categories={freeTravels} type={USER_TYPE.FREE} />
+      {loading ? <Text className="page-loading">加载中...</Text> : null}
+
+      <UserSection title="嘉宾" list={guestData.guests} type={USER_TYPE.GUEST} />
+      <UserSection title="官委" list={guestData.officials} type={USER_TYPE.OFFICIAL} />
+      <UserSection title="自由行" list={guestData.freeTravels} type={USER_TYPE.FREE} />
     </View>
   )
 }

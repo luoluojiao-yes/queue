@@ -8,8 +8,8 @@ import './index.scss'
 export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-
   useDidShow(() => {
     if (isLoggedIn()) {
       Taro.switchTab({ url: '/pages/index/index' })
@@ -84,14 +84,26 @@ export default function Login() {
         </View>
         <View className="form-item">
           <Text className="form-label">密码</Text>
-          <Input
-            className="form-input"
-            password
-            type="text"
-            placeholder="请输入密码"
-            value={password}
-            onInput={(e) => setPassword(e.detail.value)}
-          />
+          <View className="password-input-wrap">
+            <Input
+              className="form-input password-input"
+              password={!showPassword}
+              type="text"
+              placeholder="请输入密码"
+              value={password}
+              onInput={(e) => setPassword(e.detail.value)}
+            />
+            <View
+              className={`password-toggle ${showPassword ? 'is-visible' : ''}`}
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              <View className="eye-icon">
+                <View className="eye-icon__shape" />
+                <View className="eye-icon__pupil" />
+                <View className="eye-icon__slash" />
+              </View>
+            </View>
+          </View>
         </View>
         <Button className="submit-btn" loading={loading} disabled={loading} onClick={handleLogin}>
           登录

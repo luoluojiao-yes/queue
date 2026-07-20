@@ -54,6 +54,89 @@
   color: #333;
 }
 
+.password-input-wrap {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 100px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 64px;
+  height: 64px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.password-toggle:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.eye-icon {
+  position: relative;
+  width: 40px;
+  height: 28px;
+}
+
+.eye-icon__shape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 28px;
+  border: 3px solid #999;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.eye-icon__pupil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  margin-left: -6px;
+  background: #999;
+  border-radius: 50%;
+}
+
+.eye-icon__slash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 3px;
+  margin-top: -1.5px;
+  margin-left: -23px;
+  background: #999;
+  border-radius: 2px;
+  transform: rotate(-35deg);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.password-toggle.is-visible .eye-icon__shape,
+.password-toggle.is-visible .eye-icon__pupil {
+  border-color: #666;
+}
+
+.password-toggle.is-visible .eye-icon__pupil {
+  background: #666;
+}
+
+.password-toggle.is-visible .eye-icon__slash {
+  opacity: 1;
+  background: #666;
+}
+
 .submit-btn {
   margin-top: 16px;
   background: #333;
