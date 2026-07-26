@@ -29,13 +29,15 @@ function UserGrid({ list, type }) {
     <View className="user-grid">
       {list.map((user) => (
         <View className="user-item" key={user.id} onClick={() => handleClick(user)}>
-          {user.avatar ? (
-            <Image className="avatar-img" src={user.avatar} mode="aspectFill" />
-          ) : (
-            <View className="avatar-placeholder">
-              <Text className="avatar-text">{user.userName.slice(0, 1)}</Text>
-            </View>
-          )}
+          <View className="avatar-wrap">
+            {user.avatar ? (
+              <Image className="avatar-img" src={user.avatar} mode="aspectFill" />
+            ) : (
+              <View className="avatar-placeholder">
+                <Text className="avatar-text">{user.userName.slice(0, 1)}</Text>
+              </View>
+            )}
+          </View>
           <Text className="user-name">{user.userName}</Text>
         </View>
       ))}
