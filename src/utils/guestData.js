@@ -26,6 +26,43 @@ function normalizeUser(item, index) {
   }
 }
 
+function formatQueueDisplay(code, queueNo) {
+  const prefix = code == null || code === '' ? '' : String(code)
+  if (queueNo == null || queueNo === '') {
+    return prefix || ''
+  }
+  return prefix ? `${prefix} - ${queueNo}` : String(queueNo)
+}
+
+function resolveCallingId(data) {
+  if (data.type === 1) {
+    return data.interaction?.id ?? null
+  }
+  if (data.type === 2) {
+    return data.officialGuestCallRecord?.id ?? null
+  }
+  return null
+}
+
+export function normalizeGuestDetail(data) {
+  if (!data) return null
+  const code = data.code ?? ''
+  const nowQueueNo = data.nowQueueNO ?? data.nowQueueNo ?? null
+  const nextQueueNo = data.nextQueueNo ?? data.nextQueueNO ?? null
+
+  return {
+    ...normalizeUser(data),
+    status: data.status,
+    guestType: data.type,
+    code,
+    nowQueueNo,
+    nextQueueNo,
+    callingId: resolveCallingId(data),
+    currentNo: formatQueueDisplay(code, nowQueueNo),
+    nextNo: nextQueueNo == null ? null : formatQueueDisplay(code, nextQueueNo),
+  }
+}
+
 export function normalizeGuestAll(data) {
   if (!data) {
     return { guests: [], officials: [], freeTravels: [] }

@@ -7,3 +7,10 @@ export function queryGuestAll() {
     data: {},
   })
 }
+
+export function getGuestById(id) {
+  return request({
+    url: `/guest/${id}`,
+    method: 'GET',
+  })
+}
