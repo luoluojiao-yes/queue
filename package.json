@@ -10,8 +10,8 @@
   },
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "build:weapp": "taro build --type weapp",
-    "dev:weapp": "npm run build:weapp -- --watch"
+    "build:weapp": "cross-env NODE_ENV=production taro build --type weapp",
+    "dev:weapp": "cross-env NODE_ENV=development taro build --type weapp --watch"
   },
   "browserslist": [
     "last 3 versions",
@@ -39,6 +39,7 @@
     "@tarojs/cli": "4.0.9",
     "@tarojs/webpack5-runner": "4.0.9",
     "babel-preset-taro": "4.0.9",
+    "cross-env": "^7.0.3",
     "sass": "^1.77.0",
     "webpack": "5.91.0"
   }
