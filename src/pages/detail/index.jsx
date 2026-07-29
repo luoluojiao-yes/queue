@@ -214,8 +214,8 @@ export default function Detail() {
           <Text className="info-value highlight">{user.currentNo}</Text>
         </View>
         <View className="info-row">
-          <Text className="info-label">ID</Text>
-          <Text className="info-value">{user.id}</Text>
+          <Text className="info-label">cos的角色</Text>
+          <Text className="info-value">{user.cosRole}</Text>
         </View>
         <View className="info-row">
           <Text className="info-label">类型</Text>
@@ -267,13 +267,20 @@ export default function Detail() {
       {modalVisible && (
         <View className="modal-mask" onClick={handleCloseModal}>
           <View className="modal-content" catchClick={() => {}}>
-            <Text className="modal-title">确认叫下一位吗？</Text>
+            <Text className="modal-title">确认叫下一位吗</Text>
             {user.nextQueueNo == null ? (
               <Text className="modal-desc modal-desc-done">叫号已经全部完成</Text>
             ) : (
-              <>
-                <Text className="modal-no">{user.nextNo}</Text>
-              </>
+              <View className="modal-queue-info">
+                <View className="modal-queue-row">
+                  <Text className="modal-queue-label">当前叫号</Text>
+                  <Text className="modal-queue-value">{user.currentNo || '-'}</Text>
+                </View>
+                <View className="modal-queue-row">
+                  <Text className="modal-queue-label">下一位叫号</Text>
+                  <Text className="modal-queue-value highlight">{user.nextNo || '-'}</Text>
+                </View>
+              </View>
             )}
             <View className="modal-actions">
               {user.nextQueueNo == null ? (

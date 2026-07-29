@@ -4,7 +4,7 @@ module.exports = {
   },
   defineConstants: {
     // 本地启动：npm run dev:weapp
-    API_BASE_URL: '"http://localhost:8080/api"',
+    API_BASE_URL: '"http://8.166.113.39/api"',
   },
   mini: {},
   cache: {
