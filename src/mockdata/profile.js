@@ -4,6 +4,8 @@ export const emptyUserInfo = {
   username: EMPTY,
   ticketNo: EMPTY,
   orderNo: EMPTY,
+  address: EMPTY,
+  phone: EMPTY,
   guestList: [],
 }
 

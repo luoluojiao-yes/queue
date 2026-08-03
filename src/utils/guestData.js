@@ -49,17 +49,20 @@ export function normalizeGuestDetail(data) {
   const code = data.code ?? ''
   const nowQueueNo = data.nowQueueNO ?? data.nowQueueNo ?? null
   const nextQueueNo = data.nextQueueNo ?? data.nextQueueNO ?? null
+  const hasNowQueue = nowQueueNo != null && nowQueueNo !== ''
+  const hasNextQueue = nextQueueNo != null && nextQueueNo !== ''
 
   return {
     ...normalizeUser(data),
     status: data.status,
     guestType: data.type,
+    cosRoleName: data.cosRoleName,
     code,
-    nowQueueNo,
-    nextQueueNo,
+    nowQueueNo: hasNowQueue ? nowQueueNo : null,
+    nextQueueNo: hasNextQueue ? nextQueueNo : null,
     callingId: resolveCallingId(data),
-    currentNo: formatQueueDisplay(code, nowQueueNo),
-    nextNo: nextQueueNo == null ? null : formatQueueDisplay(code, nextQueueNo),
+    currentNo: hasNowQueue ? formatQueueDisplay(code, nowQueueNo) : '',
+    nextNo: hasNextQueue ? formatQueueDisplay(code, nextQueueNo) : null,
   }
 }
 

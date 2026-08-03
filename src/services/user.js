@@ -24,6 +24,14 @@ export function getUserByTicketCode(ticketCode) {
   })
 }
 
+export function updateUserInfo(data) {
+  return request({
+    url: '/user',
+    method: 'PUT',
+    data,
+  })
+}
+
 export async function fetchUserInfo(userId) {
   const userInfo = await getUserById(userId)
   setUserInfo(userInfo)

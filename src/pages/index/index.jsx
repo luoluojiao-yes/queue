@@ -3,6 +3,7 @@ import { View, Text, Image } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { USER_TYPE } from '../../mockdata'
 import { queryGuestAll } from '../../services/guest'
+import { getCurrentActivity } from '../../services/activity'
 import { normalizeGuestAll, setGuestAllCache, setDetailUser } from '../../utils/guestData'
 import { useAuthGuard } from '../../hooks/useAuthGuard'
 import './index.scss'
@@ -57,15 +58,20 @@ function UserSection({ title, list, type }) {
 export default function Index() {
   useAuthGuard()
   const [guestData, setGuestData] = useState(emptyGuestData)
+  const [activityName, setActivityName] = useState('')
   const [loading, setLoading] = useState(false)
 
   useDidShow(async () => {
     setLoading(true)
     try {
-      const data = await queryGuestAll()
-      const normalized = normalizeGuestAll(data)
+      const [guestRes, activityRes] = await Promise.all([
+        queryGuestAll(),
+        getCurrentActivity().catch(() => null),
+      ])
+      const normalized = normalizeGuestAll(guestRes)
       setGuestAllCache(normalized)
       setGuestData(normalized)
+      setActivityName(activityRes?.name || '')
     } catch (err) {
       Taro.showToast({
         title: err.message || '加载嘉宾数据失败',
@@ -79,7 +85,7 @@ export default function Index() {
   return (
     <View className="page">
       <View className="header">
-        <Text className="title">烬光灵契·深空光夜魔法校园</Text>
+        <Text className="title">{activityName || '线下活动叫号'}</Text>
         <Text className="subtitle">选择嘉宾、官委或自由行</Text>
       </View>
 

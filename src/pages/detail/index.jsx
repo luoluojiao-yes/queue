@@ -5,6 +5,7 @@ import { USER_TYPE } from '../../mockdata'
 import { getGuestById } from '../../services/guest'
 import { startCalling, nextCalling, passCalling } from '../../services/calling'
 import { normalizeGuestDetail } from '../../utils/guestData'
+import { getRoleType } from '../../utils/auth'
 import { useAuthGuard } from '../../hooks/useAuthGuard'
 import './index.scss'
 
@@ -21,6 +22,7 @@ export default function Detail() {
   const [startCallSubmitting, setStartCallSubmitting] = useState(false)
   const [nextCallSubmitting, setNextCallSubmitting] = useState(false)
   const [skipCooldown, setSkipCooldown] = useState(0)
+  const canOperateCall = getRoleType() !== 1
 
   const typeLabel =
     type === USER_TYPE.GUEST ? '嘉宾' : type === USER_TYPE.OFFICIAL ? '官委' : '自由行'
@@ -60,7 +62,7 @@ export default function Detail() {
   }, [skipCooldown])
 
   const handlePrimaryAction = () => {
-    if (!user) return
+    if (!user || !canOperateCall) return
     if (user.status === 0 && user.guestType !== 3) {
       setStartCallVisible(true)
       return
@@ -81,7 +83,7 @@ export default function Detail() {
   }
 
   const handleConfirmStartCall = async () => {
-    if (!id || startCallSubmitting) return
+    if (!id || !canOperateCall || startCallSubmitting) return
 
     setStartCallSubmitting(true)
     try {
@@ -100,9 +102,9 @@ export default function Detail() {
   }
 
   const handleSkip = () => {
-    if (skipCooldown > 0 || !user || nextCallSubmitting) return
-    if (user.nextQueueNo == null) {
-      Taro.showToast({ title: '叫号已经全部完成', icon: 'none' })
+    if (!canOperateCall || skipCooldown > 0 || !user || nextCallSubmitting) return
+    if (user.nowQueueNo == null || user.nowQueueNo === '') {
+      Taro.showToast({ title: '该嘉宾已经完成叫号', icon: 'none' })
       return
     }
     if (user.callingId == null) {
@@ -141,9 +143,9 @@ export default function Detail() {
   }
 
   const handleConfirm = async () => {
-    if (!user || nextCallSubmitting) return
-    if (user.nextQueueNo == null) {
-      Taro.showToast({ title: '叫号已经全部完成', icon: 'none' })
+    if (!canOperateCall || !user || nextCallSubmitting) return
+    if (user.nowQueueNo == null || user.nowQueueNo === '') {
+      Taro.showToast({ title: '该嘉宾已经完成叫号', icon: 'none' })
       return
     }
     if (user.callingId == null) {
@@ -186,9 +188,10 @@ export default function Detail() {
     )
   }
 
-  const showStartCall = user.status === 0 && user.guestType !== 3
-  const showCall = user.status === 1 && user.guestType !== 3
+  const showStartCall = canOperateCall && user.status === 0 && user.guestType !== 3
+  const showCall = canOperateCall && user.status === 1 && user.guestType !== 3
   const callBtnText = showStartCall ? '开始叫号' : showCall ? '叫号' : ''
+  const isCallFinished = user.nowQueueNo == null || user.nowQueueNo === ''
 
   return (
     <View className="detail-page">
@@ -204,18 +207,22 @@ export default function Detail() {
         <Text className="type-tag">{typeLabel}</Text>
         <View className="current-no-box">
           <Text className="current-no-label">目前叫号</Text>
-          <Text className="current-no-value">{user.currentNo}</Text>
+          <Text className="current-no-value">
+            {isCallFinished ? '已完成' : user.currentNo || '-'}
+          </Text>
         </View>
       </View>
 
       <View className="info-list">
         <View className="info-row">
           <Text className="info-label">目前叫号</Text>
-          <Text className="info-value highlight">{user.currentNo}</Text>
+          <Text className="info-value highlight">
+            {isCallFinished ? '已完成' : user.currentNo || '-'}
+          </Text>
         </View>
         <View className="info-row">
           <Text className="info-label">cos的角色</Text>
-          <Text className="info-value">{user.cosRole}</Text>
+          <Text className="info-value">{user.cosRoleName}</Text>
         </View>
         <View className="info-row">
           <Text className="info-label">类型</Text>
@@ -268,8 +275,8 @@ export default function Detail() {
         <View className="modal-mask" onClick={handleCloseModal}>
           <View className="modal-content" catchClick={() => {}}>
             <Text className="modal-title">确认叫下一位吗</Text>
-            {user.nextQueueNo == null ? (
-              <Text className="modal-desc modal-desc-done">叫号已经全部完成</Text>
+            {isCallFinished ? (
+              <Text className="modal-desc modal-desc-done">该嘉宾已经完成叫号</Text>
             ) : (
               <View className="modal-queue-info">
                 <View className="modal-queue-row">
@@ -283,7 +290,7 @@ export default function Detail() {
               </View>
             )}
             <View className="modal-actions">
-              {user.nextQueueNo == null ? (
+              {isCallFinished ? (
                 <Button className="modal-btn modal-btn-primary" onClick={handleCloseModal}>
                   知道了
                 </Button>

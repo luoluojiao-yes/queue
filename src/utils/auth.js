@@ -23,6 +23,11 @@ export function getRoleType() {
   return auth?.roleType ?? null
 }
 
+/** roleType === 1 为普通用户，不可操作叫号 */
+export function canOperateCalling() {
+  return Number(getRoleType()) !== 1
+}
+
 export function isTokenExpired(auth = getAuth()) {
   return !!(auth?.expireAt && Date.now() >= auth.expireAt)
 }

@@ -23,5 +23,7 @@ export function normalizeUserProfile(userInfo) {
     ticketNo: userInfo.ticketCode || EMPTY,
     orderNo: userInfo.tradeNo || EMPTY,
     guestList: normalizeGuestList(userInfo.interactionResps),
+    address: userInfo.address || EMPTY,
+    phone: userInfo.phone || EMPTY,
   }
 }

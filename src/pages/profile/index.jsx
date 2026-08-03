@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { View, Text, Button, Input } from '@tarojs/components'
+import { View, Text, Input, Textarea } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { EMPTY, emptyUserInfo } from '../../mockdata'
 import { useAuthGuard } from '../../hooks/useAuthGuard'
 import { clearAuth, getUserId, getUserInfo } from '../../utils/auth'
-import { fetchUserInfo, getUserByTicketCode } from '../../services/user'
+import { fetchUserInfo, getUserByTicketCode, updateUserInfo } from '../../services/user'
 import { presentInteraction } from '../../services/interaction'
 import { normalizeUserProfile } from '../../utils/userProfile'
 import './index.scss'
@@ -24,6 +24,32 @@ export default function Profile() {
   const [targetUser, setTargetUser] = useState(null)
   const [ticketCode, setTicketCode] = useState('')
   const [giftSubmitting, setGiftSubmitting] = useState(false)
+  const [editVisible, setEditVisible] = useState(false)
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const [editForm, setEditForm] = useState({
+    userName: '',
+    address: '',
+    phone: '',
+  })
+  const [expandedInfo, setExpandedInfo] = useState({
+    address: false,
+    phone: false,
+  })
+  const [addressHeight, setAddressHeight] = useState(80)
+
+  const toEditValue = (value) => (value === EMPTY ? '' : value || '')
+  const ADDRESS_LINE_HEIGHT = 40
+  const ADDRESS_MIN_HEIGHT = 80
+  const ADDRESS_MAX_HEIGHT = 240
+
+  const handleAddressLineChange = (e) => {
+    const lineCount = Math.max(1, e.detail?.lineCount || 1)
+    const nextHeight = Math.min(
+      ADDRESS_MAX_HEIGHT,
+      ADDRESS_MIN_HEIGHT + (lineCount - 1) * ADDRESS_LINE_HEIGHT
+    )
+    setAddressHeight(nextHeight)
+  }
 
   const reloadUserInfo = async () => {
     const userId = getUserId()
@@ -59,6 +85,17 @@ export default function Profile() {
     })
   }
 
+  const handleInfoClick = (item) => {
+    if (item.collapsible) {
+      setExpandedInfo((prev) => {
+        const nextExpanded = !prev[item.key]
+        return { ...prev, [item.key]: nextExpanded }
+      })
+      return
+    }
+    handleCopy(item.label, item.value)
+  }
+
   const handleLogout = () => {
     Taro.showModal({
       title: '确认退出',
@@ -69,6 +106,74 @@ export default function Profile() {
         if (res.confirm) {
           clearAuth()
           Taro.reLaunch({ url: '/pages/login/index' })
+        }
+      },
+    })
+  }
+
+  const handleOpenEdit = () => {
+    setEditForm({
+      userName: toEditValue(userInfo.username),
+      address: toEditValue(userInfo.address),
+      phone: toEditValue(userInfo.phone),
+    })
+    setAddressHeight(ADDRESS_MIN_HEIGHT)
+    setEditVisible(true)
+  }
+
+  const handleCloseEdit = () => {
+    if (editSubmitting) return
+    setEditVisible(false)
+  }
+
+  const handleEditFieldChange = (key, value) => {
+    setEditForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleSaveEdit = () => {
+    const userName = editForm.userName.trim()
+    const address = editForm.address.trim()
+    const phone = editForm.phone.trim()
+
+    if (!userName) {
+      Taro.showToast({ title: '请输入cn', icon: 'none' })
+      return
+    }
+
+    const userId = getUserId()
+    if (userId == null) {
+      Taro.showToast({ title: '未获取到用户信息', icon: 'none' })
+      return
+    }
+
+    if (editSubmitting) return
+
+    Taro.showModal({
+      title: '确认修改',
+      content: '确定要保存个人信息吗？',
+      confirmText: '确认',
+      cancelText: '取消',
+      success: async (res) => {
+        if (!res.confirm) return
+
+        setEditSubmitting(true)
+        try {
+          await updateUserInfo({
+            id: userId,
+            userName,
+            address,
+            phone,
+          })
+          Taro.showToast({ title: '修改成功', icon: 'success' })
+          setEditVisible(false)
+          await reloadUserInfo()
+        } catch (err) {
+          Taro.showToast({
+            title: err.message || '修改失败',
+            icon: 'none',
+          })
+        } finally {
+          setEditSubmitting(false)
         }
       },
     })
@@ -120,8 +225,8 @@ export default function Profile() {
     }
   }
 
-  const handleConfirmGiftToUser = async () => {
-    if (!targetUser || !giftGuest?.raw) return
+  const handleConfirmGiftToUser = () => {
+    if (!targetUser || !giftGuest?.raw || giftSubmitting) return
 
     const cachedUser = getUserInfo()
     const presentedBy = cachedUser?.ticketCode
@@ -130,30 +235,41 @@ export default function Profile() {
       return
     }
 
-    setGiftSubmitting(true)
-    try {
-      await presentInteraction({
-        ...giftGuest.raw,
-        ticketCodeTo: targetUser.ticketCode,
-        presentedBy,
-      })
-      Taro.showToast({ title: '赠票成功', icon: 'success' })
-      resetGiftModal()
-      await reloadUserInfo()
-    } catch (err) {
-      Taro.showToast({
-        title: err.message || '赠票失败',
-        icon: 'none',
-      })
-    } finally {
-      setGiftSubmitting(false)
-    }
+    Taro.showModal({
+      title: '确认赠票',
+      content: `确定将「${giftGuest.coserName}」赠票给 ${targetUser.userName || targetUser.ticketCode} 吗？一旦赠送不可撤回。`,
+      confirmText: '确认',
+      cancelText: '取消',
+      success: async (res) => {
+        if (!res.confirm) return
+
+        setGiftSubmitting(true)
+        try {
+          await presentInteraction({
+            ...giftGuest.raw,
+            ticketCodeTo: targetUser.ticketCode,
+            presentedBy,
+          })
+          Taro.showToast({ title: '赠票成功', icon: 'success' })
+          resetGiftModal()
+          await reloadUserInfo()
+        } catch (err) {
+          Taro.showToast({
+            title: err.message || '赠票失败',
+            icon: 'none',
+          })
+        } finally {
+          setGiftSubmitting(false)
+        }
+      },
+    })
   }
 
   const infoList = [
     { key: 'username', label: 'cn', value: userInfo.username },
     { key: 'ticketNo', label: '票号', value: userInfo.ticketNo },
-    { key: 'orderNo', label: '订单号', value: userInfo.orderNo },
+    { key: 'address', label: '地址', value: userInfo.address, collapsible: true },
+    { key: 'phone', label: '手机号', value: userInfo.phone, collapsible: true },
   ]
 
   return (
@@ -169,19 +285,44 @@ export default function Profile() {
       </View>
 
       <View className="info-section">
-        <Text className="section-title">我的信息</Text>
-        {infoList.map((item) => (
-          <Button
-            key={item.key}
-            className="info-btn"
-            onClick={() => handleCopy(item.label, item.value)}
-          >
-            <Text className="info-label">{item.label}</Text>
-            <Text className={`info-value ${item.value === EMPTY ? 'empty' : ''}`}>
-              {item.value}
-            </Text>
-          </Button>
-        ))}
+        <View className="section-header">
+          <Text className="section-title">我的信息</Text>
+          <View className="edit-profile-btn" onClick={handleOpenEdit}>
+            修改个人信息
+          </View>
+        </View>
+        {infoList.map((item) => {
+          const isExpanded = !item.collapsible || expandedInfo[item.key]
+          const displayValue = item.collapsible && !isExpanded ? '点击查看' : item.value
+          const isEmptyDisplay =
+            isExpanded && item.value === EMPTY
+              ? true
+              : !item.collapsible && item.value === EMPTY
+
+          return (
+            <View
+              key={item.key}
+              className={`info-btn ${
+                item.key === 'address' && isExpanded ? 'info-btn-multiline' : ''
+              } ${item.collapsible ? 'info-btn-fold' : ''}`}
+              onClick={() => handleInfoClick(item)}
+            >
+              <Text className="info-label">{item.label}</Text>
+              <View className="info-value-wrap">
+                <Text
+                  className={`info-value ${isEmptyDisplay ? 'empty' : ''} ${
+                    item.collapsible && !isExpanded ? 'info-value-hint' : ''
+                  } ${item.key === 'address' && isExpanded ? 'info-value-multiline' : ''}`}
+                >
+                  {displayValue}
+                </Text>
+                {item.collapsible ? (
+                  <Text className="info-fold-icon">{isExpanded ? '收起' : '展开'}</Text>
+                ) : null}
+              </View>
+            </View>
+          )
+        })}
 
         <View className="guest-section">
           <Text className="guest-section-title">所排嘉宾</Text>
@@ -207,19 +348,77 @@ export default function Profile() {
         </View>
       </View>
 
-      <Button className="login-btn" onClick={handleLogout}>
+      <View className="login-btn" onClick={handleLogout}>
         退出登录
-      </Button>
+      </View>
+
+      {editVisible ? (
+        <View className="modal-mask" catchMove>
+          <View className="modal-backdrop" onClick={handleCloseEdit} />
+          <View className="modal-content modal-content-edit">
+            <Text className="modal-title">修改个人信息</Text>
+            <Text className="modal-label">cn</Text>
+            <View className="modal-input-wrap">
+              <Input
+                className="modal-input"
+                type="text"
+                focus
+                adjustPosition
+                holdKeyboard
+                placeholder="请输入cn"
+                value={editForm.userName}
+                onInput={(e) => handleEditFieldChange('userName', e.detail.value)}
+              />
+            </View>
+            <Text className="modal-label">地址</Text>
+            <View className="modal-input-wrap modal-textarea-wrap">
+              <Textarea
+                className="modal-textarea"
+                style={{ width: '100%', height: `${addressHeight}rpx` }}
+                maxlength={200}
+                showConfirmBar={false}
+                adjustPosition
+                holdKeyboard
+                placeholder="请输入地址"
+                value={editForm.address}
+                onInput={(e) => handleEditFieldChange('address', e.detail.value)}
+                onLineChange={handleAddressLineChange}
+              />
+            </View>
+            <Text className="modal-label">手机号</Text>
+            <View className="modal-input-wrap">
+              <Input
+                className="modal-input"
+                type="number"
+                maxlength={11}
+                adjustPosition
+                holdKeyboard
+                placeholder="请输入手机号"
+                value={editForm.phone}
+                onInput={(e) => handleEditFieldChange('phone', e.detail.value)}
+              />
+            </View>
+            <View className="modal-actions">
+              <View
+                className={`modal-btn modal-btn-secondary ${editSubmitting ? 'modal-btn-disabled' : ''}`}
+                onClick={handleCloseEdit}
+              >
+                取消
+              </View>
+              <View
+                className={`modal-btn modal-btn-primary ${editSubmitting ? 'modal-btn-disabled' : ''}`}
+                onClick={handleSaveEdit}
+              >
+                {editSubmitting ? '保存中...' : '保存'}
+              </View>
+            </View>
+          </View>
+        </View>
+      ) : null}
 
       {giftVisible ? (
-        <View
-          className="modal-mask"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              handleCloseGiftModal()
-            }
-          }}
-        >
+        <View className="modal-mask" catchMove>
+          <View className="modal-backdrop" onClick={handleCloseGiftModal} />
           <View className="modal-content">
             {giftStep === GIFT_STEP.INPUT ? (
               <>
@@ -241,30 +440,29 @@ export default function Profile() {
                   />
                 </View>
                 <View className="modal-actions">
-                  <Button
-                    className="modal-btn modal-btn-secondary"
-                    disabled={giftSubmitting}
+                  <View
+                    className={`modal-btn modal-btn-secondary ${giftSubmitting ? 'modal-btn-disabled' : ''}`}
                     onClick={handleCloseGiftModal}
                   >
                     取消
-                  </Button>
-                  <Button
-                    className="modal-btn modal-btn-primary"
-                    loading={giftSubmitting}
-                    disabled={giftSubmitting}
+                  </View>
+                  <View
+                    className={`modal-btn modal-btn-primary ${giftSubmitting ? 'modal-btn-disabled' : ''}`}
                     onClick={handleSearchTargetUser}
                   >
-                    确认
-                  </Button>
+                    {giftSubmitting ? '查询中...' : '确认'}
+                  </View>
                 </View>
               </>
             ) : (
               <>
                 <Text className="modal-title">确认赠票</Text>
-                <Text className="modal-desc">确认是否赠票给该用户？一旦赠送不可撤回。所有权益归属对方</Text>
+                <Text className="modal-desc">
+                  确认是否赠票给该用户？一旦赠送不可撤回。所有权益归属对方
+                </Text>
                 <View className="modal-info-list">
                   <View className="modal-info-row">
-                    <Text className="modal-info-label">用户名</Text>
+                    <Text className="modal-info-label">cn</Text>
                     <Text className="modal-info-value">{targetUser?.userName || EMPTY}</Text>
                   </View>
                   <View className="modal-info-row">
@@ -279,21 +477,18 @@ export default function Profile() {
                   ) : null}
                 </View>
                 <View className="modal-actions">
-                  <Button
-                    className="modal-btn modal-btn-secondary"
-                    disabled={giftSubmitting}
+                  <View
+                    className={`modal-btn modal-btn-secondary ${giftSubmitting ? 'modal-btn-disabled' : ''}`}
                     onClick={handleCloseGiftModal}
                   >
                     取消
-                  </Button>
-                  <Button
-                    className="modal-btn modal-btn-primary"
-                    loading={giftSubmitting}
-                    disabled={giftSubmitting}
+                  </View>
+                  <View
+                    className={`modal-btn modal-btn-primary ${giftSubmitting ? 'modal-btn-disabled' : ''}`}
                     onClick={handleConfirmGiftToUser}
                   >
-                    确认
-                  </Button>
+                    {giftSubmitting ? '提交中...' : '确认'}
+                  </View>
                 </View>
               </>
             )}
